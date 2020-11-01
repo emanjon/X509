@@ -237,12 +237,13 @@ Internet-Draft                 COSE X.509                  November 2020
          string.
 
    x5t:  This header parameter provides the ability to identify an X.509
-      certificate by a hash value.  The attribute is an array of two
-      elements.  The first element is an algorithm identifier which is
-      an integer or a string containing the hash algorithm identifier.
-      The algorithm is registered in the "COSE Algorithms" registry.
-      The second element is a binary string containing the hash value
-      computed over the DER encoded certificate.
+      certificate by a hash value.  The 'x5t' header parameter can be
+      represented as an array of two elements.  The first element is an
+      algorithm identifier which is an integer or a string containing
+      the hash algorithm identifier.  The algorithm is registered in the
+      "COSE Algorithms" registry.  The second element is a binary string
+      containing the hash value computed over the DER encoded
+      certificate.
 
       As this header parameter does not provide any trust, the header
       parameter can be in either a protected or unprotected header
@@ -273,7 +274,6 @@ Internet-Draft                 COSE X.509                  November 2020
       any of the following media types:
 
       *  application/pkix-cert [RFC2585]
-
 
 
 
