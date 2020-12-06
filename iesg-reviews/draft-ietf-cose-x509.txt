@@ -147,8 +147,8 @@ Internet-Draft                 COSE X.509                  December 2020
    also reasonable that a constrained device would have the hash of a
    certificate associated with a public key and be configured to use a
    public key for that thumbprint, but without performing the
-   certificate evaluation or even having the entire certificate.  In
-   that case, there still needs to be an entity that is responsible for
+   certificate evaluation or even having the entire certificate.  In any
+   case, there still needs to be an entity that is responsible for
    handling the possible certificate revocation.
 
    Parties that intend to rely on the assertions made by a certificate
@@ -159,9 +159,9 @@ Internet-Draft                 COSE X.509                  December 2020
    includes matching against the trust anchors configured for the
    application.  These rules apply when the validation succeeds in a
    single step as well as when certificate chains need to be built.  If
-   the application cannot establish trust in the certificate, that
-   certificate cannot be used.
-
+   the application cannot establish trust in the certificate, the public
+   key contained in the certificate cannot be used for cryptographic
+   operations.
 
 
 
@@ -210,7 +210,7 @@ Internet-Draft                 COSE X.509                  December 2020
       reason to believe that the relying party already has, or can
       locate the missing certificates.  This means that the relying
       party is still required to do path building, but that a candidate
-      path is proposed in this attribute.
+      path is proposed in this header parameter.
 
       The trust mechanism MUST process any certificates in this
       parameter as untrusted input.  The presence of a self-signed
@@ -237,14 +237,14 @@ Internet-Draft                 COSE X.509                  December 2020
          string.
 
    x5t:  This header parameter provides the ability to identify an X.509
-      certificate by a hash value.  The 'x5t' header parameter can be
-      represented as an array of two elements.  The first element is an
-      algorithm identifier which is an integer or a string containing
-      the hash algorithm identifier corresponding to either the Value
-      (integer) or Name (string) column of the algorithm registered in
-      the "COSE Algorithms" registry.  The second element is a binary
-      string containing the hash value computed over the DER encoded
-      certificate.
+      certificate by a hash value (a thumbprint).  The 'x5t' header
+      parameter can be represented as an array of two elements.  The
+      first element is an algorithm identifier which is an integer or a
+      string containing the hash algorithm identifier corresponding to
+      either the Value (integer) or Name (string) column of the
+      algorithm registered in the "COSE Algorithms" registry.  The
+      second element is a binary string containing the hash value
+      computed over the DER encoded certificate.
 
       As this header parameter does not provide any trust, the header
       parameter can be in either a protected or unprotected header
@@ -252,7 +252,9 @@ Internet-Draft                 COSE X.509                  December 2020
 
       For interoperability, applications which use this header parameter
       MUST support the hash algorithm 'SHA-256', but can use other hash
-      algorithms.
+      algorithms.  This requirement allows for different implementations
+      to be configured to use an interoperable algorithm, but does not
+      preclude the use (by prior agreement) of other algorithms.
 
       RFC Editor please remove the following two paragraphs:
 
@@ -271,8 +273,6 @@ Internet-Draft                 COSE X.509                  December 2020
       but still not be able to inter-operate.
 
    x5u:  This header parameter provides the ability to identify an X.509
-      certificate by a URI [RFC3986].  It contains a CBOR text string.
-      The referenced resource can be any of the following media types:
 
 
 
@@ -282,21 +282,26 @@ Schaad                     Expires 9 June 2021                  [Page 5]
 Internet-Draft                 COSE X.509                  December 2020
 
 
+      certificate by a URI [RFC3986].  It contains a CBOR text string.
+      The referenced resource can be any of the following media types:
+
       *  application/pkix-cert [RFC2585]
 
       *  application/pkcs7-mime; smime-type="certs-only" [RFC8551]
 
-      As this header parameter implies a trust relationship, the
-      attribute MUST be in the protected attribute bucket.
+      As this header parameter implies a trust relationship between the
+      party generating the x5u parameter and the party hosting the
+      referred-to resource, this header parameter MUST be in the
+      protected attribute bucket.
 
       The URI provided MUST provide integrity protection and server
       authentication.  For example, an HTTP or CoAP GET request to
       retrieve a certificate MUST use TLS [RFC8446] or DTLS
-      [I-D.ietf-tls-dtls13].  If the certificate does not chain to an
-      existing trust anchor, the certificate MUST NOT be trusted unless
-      the server is configured as trusted to provide new trust anchors.
-      In particular, self-signed certificates MUST NOT be trusted
-      without an out-of-band confirmation.
+      [I-D.ietf-tls-dtls13].  If the retrieved certificate does not
+      chain to an existing trust anchor, the certificate MUST NOT be
+      trusted unless the server is configured as trusted to provide new
+      trust anchors.  In particular, self-signed certificates MUST NOT
+      be trusted without an out-of-band confirmation.
 
    The header parameters are used in the following locations:
 
@@ -308,6 +313,30 @@ Internet-Draft                 COSE X.509                  December 2020
 
    The labels assigned to each header parameter can be found in the
    following table.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Schaad                     Expires 9 June 2021                  [Page 6]
+
+Internet-Draft                 COSE X.509                  December 2020
+
 
          +=========+=======+===============+=====================+
          | Name    | Label | Value Type    | Description         |
@@ -328,15 +357,6 @@ Internet-Draft                 COSE X.509                  December 2020
                    Table 1: X.509 COSE Header Parameters
 
    Below is an equivalent CDDL [RFC8610] description of the text above.
-
-
-
-
-
-Schaad                     Expires 9 June 2021                  [Page 6]
-
-Internet-Draft                 COSE X.509                  December 2020
-
 
    COSE_X509 = bstr / [ 2*certs: bstr ]
    COSE_CertHash = [ hashAlg: (int / tstr), hashValue: bstr ]
@@ -365,26 +385,6 @@ Internet-Draft                 COSE X.509                  December 2020
       'x5t'.
 
    x5u-sender:  This header parameter contains a URI for the sender's
-      key exchange certificate.  The structure and processing are the
-      same as 'x5u'.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -394,26 +394,29 @@ Schaad                     Expires 9 June 2021                  [Page 7]
 Internet-Draft                 COSE X.509                  December 2020
 
 
+      key exchange certificate.  The structure and processing are the
+      same as 'x5u'.
+
    +===============+=====+=============+===================+===========+
    |Name           |Label|Type         | Algorithm         |Description|
    +===============+=====+=============+===================+===========+
    |x5t-sender     |TBD  |COSE_CertHash| ECDH-SS+HKDF-256, |Thumbprint |
    |               |     |             | ECDH-SS+HKDF-512, |for the    |
    |               |     |             | ECDH-SS+A128KW,   |senders    |
-   |               |     |             | ECDH-SS+AES192KW, |X.509      |
-   |               |     |             | ECDH-SS+AES256KW  |certificate|
+   |               |     |             | ECDH-SS+A192KW,   |X.509      |
+   |               |     |             | ECDH-SS+A256KW    |certificate|
    +---------------+-----+-------------+-------------------+-----------+
    |x5u-sender     |TBD  |uri          | ECDH-SS+HKDF-256, |URI for the|
    |               |     |             | ECDH-SS+HKDF-512, |senders    |
    |               |     |             | ECDH-SS+A128KW,   |X.509      |
-   |               |     |             | ECDH-SS+AES192KW, |certificate|
-   |               |     |             | ECDH-SS+AES256KW  |           |
+   |               |     |             | ECDH-SS+A192KW,   |certificate|
+   |               |     |             | ECDH-SS+A256KW    |           |
    +---------------+-----+-------------+-------------------+-----------+
    |x5chain-sender |TBD  |COSE_X509    | ECDH-SS+HKDF-256, |static key |
    |               |     |             | ECDH-SS+HKDF-512, |X.509      |
    |               |     |             | ECDH-SS+A128KW,   |certificate|
-   |               |     |             | ECDH-SS+AES192KW, |chain      |
-   |               |     |             | ECDH-SS+AES256KW  |           |
+   |               |     |             | ECDH-SS+A192KW,   |chain      |
+   |               |     |             | ECDH-SS+A256KW    |           |
    +---------------+-----+-------------+-------------------+-----------+
 
                    Table 2: Static ECDH Algorithm Values
@@ -433,9 +436,6 @@ Internet-Draft                 COSE X.509                  December 2020
    parameters in Table 2 in the "COSE Header Algorithm Parameters"
    registry.  For each item, the 'Reference' field points to this
    document.
-
-
-
 
 
 
@@ -481,7 +481,7 @@ Internet-Draft                 COSE X.509                  December 2020
    example using a 200K RSA key).
 
    When processing x5u header parameter the security considerations of
-   [RFC3986] also apply.
+   [RFC3986] and specifically those defined in Section 7.1 also apply.
 
 6.  References
 
