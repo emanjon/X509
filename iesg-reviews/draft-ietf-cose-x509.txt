@@ -4,13 +4,13 @@
 
 Network Working Group                                          J. Schaad
 Internet-Draft                                            August Cellars
-Intended status: Standards Track                         6 December 2020
-Expires: 9 June 2021
+Intended status: Standards Track                        13 December 2020
+Expires: 16 June 2021
 
 
     CBOR Object Signing and Encryption (COSE): Header parameters for
               carrying and referencing X.509 certificates
-                        draft-ietf-cose-x509-07
+                        draft-ietf-cose-x509-08
 
 Abstract
 
@@ -47,13 +47,13 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 June 2021.
+   This Internet-Draft will expire on 16 June 2021.
 
 
 
 
 
-Schaad                     Expires 9 June 2021                  [Page 1]
+Schaad                    Expires 16 June 2021                  [Page 1]
 
 Internet-Draft                 COSE X.509                  December 2020
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Schaad                     Expires 9 June 2021                  [Page 2]
+Schaad                    Expires 16 June 2021                  [Page 2]
 
 Internet-Draft                 COSE X.509                  December 2020
 
@@ -165,7 +165,7 @@ Internet-Draft                 COSE X.509                  December 2020
 
 
 
-Schaad                     Expires 9 June 2021                  [Page 3]
+Schaad                    Expires 16 June 2021                  [Page 3]
 
 Internet-Draft                 COSE X.509                  December 2020
 
@@ -187,10 +187,11 @@ Internet-Draft                 COSE X.509                  December 2020
 
       The trust mechanism MUST process any certificates in this
       parameter as untrusted input.  The presence of a self-signed
-      certificate in the parameter MUST NOT be used as a signal to
-      modify the set of trust anchors.  As the contents of this header
-      parameter are untrusted input, the header parameter can be in
-      either the protected or unprotected header bucket.
+      certificate in the parameter MUST NOT cause the update of the set
+      of trust anchors without some out-of-band confirmation.  As the
+      contents of this header parameter are untrusted input, the header
+      parameter can be in either the protected or unprotected header
+      bucket.
 
       This header parameter allows for a single X.509 certificate or a
       bag of X.509 certificates to be carried in the message.
@@ -212,19 +213,26 @@ Internet-Draft                 COSE X.509                  December 2020
       party is still required to do path building, but that a candidate
       path is proposed in this header parameter.
 
-      The trust mechanism MUST process any certificates in this
-      parameter as untrusted input.  The presence of a self-signed
-      certificate in the parameter MUST NOT be used as a signal to
-      modify the set of trust anchors.  As the contents of this header
-      parameter are untrusted input, the header parameter can be in
-      either the protected or unprotected header bucket.
 
 
 
-Schaad                     Expires 9 June 2021                  [Page 4]
+
+
+
+
+
+Schaad                    Expires 16 June 2021                  [Page 4]
 
 Internet-Draft                 COSE X.509                  December 2020
 
+
+      The trust mechanism MUST process any certificates in this
+      parameter as untrusted input.  The presence of a self-signed
+      certificate in the parameter MUST NOT cause the update of the set
+      of trust anchors without some out-of-band confirmation.  As the
+      contents of this header parameter are untrusted input, the header
+      parameter can be in either the protected or unprotected header
+      bucket.
 
       This header parameter allows for a single X.509 certificate or a
       chain of X.509 certificates to be carried in the message.
@@ -266,6 +274,14 @@ Internet-Draft                 COSE X.509                  December 2020
       true, but it then means that agility is going to be very
       difficult.
 
+
+
+
+Schaad                    Expires 16 June 2021                  [Page 5]
+
+Internet-Draft                 COSE X.509                  December 2020
+
+
       The worry is that while SHA-256 may be mandatory, if a sender
       supports SHA-256 but only sends SHA-512 then the recipient which
       only does SHA-256 would not be able to use the thumbprint.  In
@@ -273,15 +289,6 @@ Internet-Draft                 COSE X.509                  December 2020
       but still not be able to inter-operate.
 
    x5u:  This header parameter provides the ability to identify an X.509
-
-
-
-
-Schaad                     Expires 9 June 2021                  [Page 5]
-
-Internet-Draft                 COSE X.509                  December 2020
-
-
       certificate by a URI [RFC3986].  It contains a CBOR text string.
       The referenced resource can be any of the following media types:
 
@@ -300,8 +307,8 @@ Internet-Draft                 COSE X.509                  December 2020
       [I-D.ietf-tls-dtls13].  If the retrieved certificate does not
       chain to an existing trust anchor, the certificate MUST NOT be
       trusted unless the server is configured as trusted to provide new
-      trust anchors.  In particular, self-signed certificates MUST NOT
-      be trusted without an out-of-band confirmation.
+      trust anchors or if an out-of-band confirmation can be received
+      for trusting the retrieved certificate.
 
    The header parameters are used in the following locations:
 
@@ -326,14 +333,7 @@ Internet-Draft                 COSE X.509                  December 2020
 
 
 
-
-
-
-
-
-
-
-Schaad                     Expires 9 June 2021                  [Page 6]
+Schaad                    Expires 16 June 2021                  [Page 6]
 
 Internet-Draft                 COSE X.509                  December 2020
 
@@ -389,7 +389,7 @@ Internet-Draft                 COSE X.509                  December 2020
 
 
 
-Schaad                     Expires 9 June 2021                  [Page 7]
+Schaad                    Expires 16 June 2021                  [Page 7]
 
 Internet-Draft                 COSE X.509                  December 2020
 
@@ -445,7 +445,7 @@ Internet-Draft                 COSE X.509                  December 2020
 
 
 
-Schaad                     Expires 9 June 2021                  [Page 8]
+Schaad                    Expires 16 June 2021                  [Page 8]
 
 Internet-Draft                 COSE X.509                  December 2020
 
@@ -483,9 +483,28 @@ Internet-Draft                 COSE X.509                  December 2020
    When processing x5u header parameter the security considerations of
    [RFC3986] and specifically those defined in Section 7.1 also apply.
 
+   Regardless of the source, certification path validation is an
+   important part of establishing trust in a certificate.  Section 6 of
+   [RFC5280] provides guidence for the path validation.  The security
+   considerations of [RFC5280] are also important for the correct usage
+   of this document.
+
+   The security of the algorithm used for 'x5t' does not affect the
+   security of the system as this header parameter selects which
+   certificate that is already present on the system should be used, but
+   it does not provide any trust.
+
 6.  References
 
 6.1.  Normative References
+
+
+
+
+Schaad                    Expires 16 June 2021                  [Page 9]
+
+Internet-Draft                 COSE X.509                  December 2020
+
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -498,13 +517,9 @@ Internet-Draft                 COSE X.509                  December 2020
               (CRL) Profile", RFC 5280, DOI 10.17487/RFC5280, May 2008,
               <https://www.rfc-editor.org/info/rfc5280>.
 
-
-
-
-Schaad                     Expires 9 June 2021                  [Page 9]
-
-Internet-Draft                 COSE X.509                  December 2020
-
+   [RFC8152]  Schaad, J., "CBOR Object Signing and Encryption (COSE)",
+              RFC 8152, DOI 10.17487/RFC8152, July 2017,
+              <https://www.rfc-editor.org/info/rfc8152>.
 
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
@@ -539,28 +554,23 @@ Internet-Draft                 COSE X.509                  December 2020
               Internet-Draft, draft-ietf-lake-edhoc-02, 2 November 2020,
               <https://tools.ietf.org/html/draft-ietf-lake-edhoc-02>.
 
+
+
+
+Schaad                    Expires 16 June 2021                 [Page 10]
+
+Internet-Draft                 COSE X.509                  December 2020
+
+
    [RFC8392]  Jones, M., Wahlstroem, E., Erdtman, S., and H. Tschofenig,
               "CBOR Web Token (CWT)", RFC 8392, DOI 10.17487/RFC8392,
               May 2018, <https://www.rfc-editor.org/info/rfc8392>.
-
-   [RFC8152]  Schaad, J., "CBOR Object Signing and Encryption (COSE)",
-              RFC 8152, DOI 10.17487/RFC8152, July 2017,
-              <https://www.rfc-editor.org/info/rfc8152>.
 
    [RFC8610]  Birkholz, H., Vigano, C., and C. Bormann, "Concise Data
               Definition Language (CDDL): A Notational Convention to
               Express Concise Binary Object Representation (CBOR) and
               JSON Data Structures", RFC 8610, DOI 10.17487/RFC8610,
               June 2019, <https://www.rfc-editor.org/info/rfc8610>.
-
-
-
-
-
-Schaad                     Expires 9 June 2021                 [Page 10]
-
-Internet-Draft                 COSE X.509                  December 2020
-
 
    [RFC3986]  Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
               Resource Identifier (URI): Generic Syntax", STD 66,
@@ -603,14 +613,4 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-
-Schaad                     Expires 9 June 2021                 [Page 11]
+Schaad                    Expires 16 June 2021                 [Page 11]
